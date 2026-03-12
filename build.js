@@ -2,6 +2,8 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
+const VERSION = "v9";
+
 const result = await build({
   entryPoints: ["viewer.js"],
   bundle: true,
@@ -33,7 +35,7 @@ const html = `<!DOCTYPE html>
         </svg>
         <h1>360° Viewer</h1>
         <p>Drop a spherical panorama image here, or click to browse</p>
-        <p class="hint">Supports equirectangular JPG / PNG images</p>
+        <p class="hint">Supports equirectangular JPG / PNG images &nbsp;·&nbsp; ${VERSION}</p>
         <button id="browse-btn">Choose Image</button>
       </div>
       <input type="file" id="file-input" accept="image/*" />
