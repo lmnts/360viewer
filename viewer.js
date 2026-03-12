@@ -90,8 +90,9 @@ function applyEquirectTexture(texture) {
   const r = texture.image.width / texture.image.height;
   const ideal = 2.0;
   if (Math.abs(r - ideal) > 0.05) {
-    texture.repeat.set(1, ideal / r);
-    texture.offset.set(0, (1 - ideal / r) / 2);
+    const scale = r / ideal;
+    texture.repeat.set(1, scale);
+    texture.offset.set(0, -(scale - 1) / 2);
     texture.wrapT = THREE.ClampToEdgeWrapping;
   }
   sphere.material = new THREE.MeshBasicMaterial({ map: texture });
