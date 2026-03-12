@@ -37,7 +37,7 @@ function initRenderer() {
   camera.position.set(0, 0, 0);
 
   // Sphere geometry — large radius, render inside by negating x-scale
-  const geo = new THREE.SphereGeometry(500, 64, 32);
+  const geo = new THREE.SphereGeometry(500, 256, 128);
   // Flip geometry so we see it from the inside
   geo.scale(-1, 1, 1);
 
