@@ -1,0 +1,204 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d0d0d;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #fff;
+}
+
+/* ── Upload screen ─────────────────────────────────── */
+
+#upload-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d0d 70%);
+}
+
+#drop-zone {
+  position: relative;
+  width: min(520px, 90vw);
+  padding: 56px 48px;
+  border: 2px dashed rgba(255,255,255,0.18);
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+#drop-zone:hover,
+#drop-zone.drag-over {
+  border-color: rgba(120, 160, 255, 0.7);
+  background: rgba(120, 160, 255, 0.05);
+}
+
+#upload-icon {
+  width: 56px;
+  height: 56px;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 20px;
+}
+
+#drop-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+
+#drop-content p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.5;
+}
+
+#drop-content .hint {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 6px;
+}
+
+#browse-btn {
+  margin-top: 28px;
+  padding: 12px 32px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#browse-btn:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* hide the native file input but keep it overlay-clickable */
+#file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ── Viewer screen ─────────────────────────────────── */
+
+#viewer-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#viewer-screen.hidden,
+#upload-screen.hidden {
+  display: none;
+}
+
+#viewer-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+#viewer-canvas.dragging {
+  cursor: grabbing;
+}
+
+/* ── HUD ───────────────────────────────────────────── */
+
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+#back-btn {
+  pointer-events: all;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+#back-btn:hover {
+  background: rgba(255,255,255,0.22);
+}
+
+#back-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+#image-name {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+#controls-hint {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
+
+/* ── Zoom buttons ──────────────────────────────────── */
+
+#zoom-btns {
+  position: absolute;
+  bottom: 24px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#zoom-btns button {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#zoom-btns button:hover {
+  background: rgba(255,255,255,0.22);
+}

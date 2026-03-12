@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>360° Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Upload screen -->
+  <div id="upload-screen">
+    <div id="drop-zone">
+      <div id="drop-content">
+        <svg id="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4m0 0v4m0-4h4m-4 0H8"/>
+        </svg>
+        <h1>360° Viewer</h1>
+        <p>Drop a spherical panorama image here, or click to browse</p>
+        <p class="hint">Supports equirectangular JPG / PNG images</p>
+        <button id="browse-btn">Choose Image</button>
+      </div>
+      <input type="file" id="file-input" accept="image/*" />
+    </div>
+  </div>
+
+  <!-- Viewer screen -->
+  <div id="viewer-screen" class="hidden">
+    <canvas id="viewer-canvas"></canvas>
+
+    <div id="hud">
+      <button id="back-btn" title="Upload new image">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <span id="image-name"></span>
+      <div id="controls-hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom</div>
+    </div>
+
+    <div id="zoom-btns">
+      <button id="zoom-in" title="Zoom in">+</button>
+      <button id="zoom-out" title="Zoom out">−</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>
