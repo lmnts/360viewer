@@ -95,7 +95,7 @@ let lastX = 0, lastY = 0;
 
 // Speed factor: slower at narrow FOV (zoomed in), faster when wide
 function dragSpeed() {
-  return camera.fov / 5000;
+  return camera.fov / 2500;
 }
 
 canvas.addEventListener("pointerdown", (e) => {
