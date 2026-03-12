@@ -1,0 +1,23 @@
+{
+  "name": "360viewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "viewer.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:39239/git/lmnts/360viewer"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.167.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.4"
+  }
+}
