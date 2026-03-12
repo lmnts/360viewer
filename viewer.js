@@ -11,6 +11,9 @@ const backBtn       = document.getElementById("back-btn");
 const imageNameEl   = document.getElementById("image-name");
 const zoomInBtn     = document.getElementById("zoom-in");
 const zoomOutBtn    = document.getElementById("zoom-out");
+const urlInput      = document.getElementById("url-input");
+const urlLoadBtn    = document.getElementById("url-load-btn");
+const urlError      = document.getElementById("url-error");
 
 // ── Three.js state ────────────────────────────────────────────────────────────
 let renderer, scene, camera, sphere;
@@ -79,6 +82,31 @@ function animate() {
 }
 
 // ── Load image into sphere texture ───────────────────────────────────────────
+function loadTextureFromURL(url, name) {
+  const loader = new THREE.TextureLoader();
+  loader.crossOrigin = "anonymous";
+  loader.load(
+    url,
+    (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      sphere.material = new THREE.MeshBasicMaterial({ map: texture });
+    },
+    undefined,
+    () => {
+      // Load failed — likely CORS. Show error and go back.
+      viewerScreen.classList.add("hidden");
+      uploadScreen.classList.remove("hidden");
+      urlError.textContent = "Could not load image — the server may not allow cross-origin requests.";
+    }
+  );
+  imageNameEl.textContent = name;
+  uploadScreen.classList.add("hidden");
+  viewerScreen.classList.remove("hidden");
+  resizeRenderer();
+  lon = 0; lat = 0;
+  TARGET_FOV.value = 90; camera.fov = 90; camera.updateProjectionMatrix();
+}
+
 function loadImage(file) {
   const url = URL.createObjectURL(file);
   const loader = new THREE.TextureLoader();
@@ -203,6 +231,17 @@ fileInput.addEventListener("change", (e) => {
   openImage(e.target.files[0]);
   fileInput.value = "";   // reset so same file can be re-selected
 });
+
+// URL loading
+function loadFromURLInput() {
+  const raw = urlInput.value.trim();
+  urlError.textContent = "";
+  if (!raw) return;
+  try { new URL(raw); } catch { urlError.textContent = "Please enter a valid URL."; return; }
+  loadTextureFromURL(raw, raw.split("/").pop() || raw);
+}
+urlLoadBtn.addEventListener("click", loadFromURLInput);
+urlInput.addEventListener("keydown", (e) => { if (e.key === "Enter") loadFromURLInput(); });
 
 // Drag-and-drop onto the drop zone
 dropZone.addEventListener("dragover", (e) => {

@@ -2,7 +2,7 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const VERSION = "v15";
+const VERSION = "v16";
 
 const logoB64 = readFileSync("LMN Logo_White.png").toString("base64");
 const logoSrc = `data:image/png;base64,${logoB64}`;
@@ -40,6 +40,11 @@ const html = `<!DOCTYPE html>
         <p>Drop a spherical panorama image here, or click to browse</p>
         <p class="hint">Supports equirectangular JPG / PNG images &nbsp;·&nbsp; ${VERSION}</p>
         <button id="browse-btn">Choose Image</button>
+        <div id="url-row">
+          <input id="url-input" type="url" placeholder="…or paste an image URL" />
+          <button id="url-load-btn">Load</button>
+        </div>
+        <div id="url-error"></div>
       </div>
       <input type="file" id="file-input" accept="image/*" />
     </div>
