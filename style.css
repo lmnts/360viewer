@@ -225,6 +225,34 @@ html, body {
   white-space: nowrap;
 }
 
+#proj-toggle {
+  pointer-events: all;
+  padding: 0 10px;
+  height: 28px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#proj-toggle:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+#proj-toggle.active {
+  background: rgba(120,160,255,0.25);
+  border-color: rgba(120,160,255,0.5);
+  color: rgba(160,200,255,1);
+}
+
 /* ── Zoom buttons ──────────────────────────────────── */
 
 #zoom-btns {

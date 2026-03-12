@@ -14,9 +14,18 @@ const zoomOutBtn    = document.getElementById("zoom-out");
 const urlInput      = document.getElementById("url-input");
 const urlLoadBtn    = document.getElementById("url-load-btn");
 const urlError      = document.getElementById("url-error");
+const projToggleBtn = document.getElementById("proj-toggle");
 
 // ── Three.js state ────────────────────────────────────────────────────────────
 let renderer, scene, camera, sphere;
+
+// ── Projection mode ───────────────────────────────────────────────────────────
+// "equirect"   – standard equirectangular (default)
+// "cylindrical" – rectilinear cylindrical: vertical stored as tan(elevation),
+//                 common output of LiDAR scanners / rectilinear-lens rigs
+let projectionMode = "equirect";
+let lastLoadedFile = null;
+let lastLoadedURL  = null;
 
 // Camera spherical coords (lon/lat in radians)
 let lon = 0;      // horizontal angle (yaw)
@@ -83,8 +92,8 @@ function animate() {
 
 // ── Load image into sphere texture ───────────────────────────────────────────
 
-// Equirectangular images should be 2:1. If the image has a different aspect
-// ratio, adjust texture repeat/offset so pixels aren't stretched.
+// For equirectangular images that aren't exactly 2:1, adjust texture
+// repeat/offset so pixels aren't stretched.
 function applyEquirectTexture(texture) {
   texture.colorSpace = THREE.SRGBColorSpace;
   const img = texture.image;
@@ -103,12 +112,92 @@ function applyEquirectTexture(texture) {
   sphere.material = new THREE.MeshBasicMaterial({ map: texture });
 }
 
+// Remap a cylindrical-projection image to equirectangular via an offscreen
+// canvas, then apply.  In rectilinear cylindrical projection the image's
+// vertical coordinate is proportional to tan(elevation_angle) rather than to
+// the elevation angle itself.  Mapping such an image straight onto the sphere
+// makes horizontal lines bow into a "frown" shape.  We correct this by
+// resampling each output row from the correct input row.
+//
+// vertFovDeg — assumed total vertical field of view of the original capture
+//              (e.g. 90 means ±45°).  180 = full equirectangular (no-op).
+function remapCylindricalToEquirect(imgBitmap, vertFovDeg) {
+  const sw = imgBitmap.width;
+  const sh = imgBitmap.height;
+
+  // Output is always 2:1 equirectangular
+  const dw = sw;
+  const dh = Math.round(sw / 2);
+
+  const srcCanvas = new OffscreenCanvas(sw, sh);
+  srcCanvas.getContext("2d").drawImage(imgBitmap, 0, 0);
+
+  const dstCanvas = new OffscreenCanvas(dw, dh);
+  const dstCtx = dstCanvas.getContext("2d");
+
+  const halfVertRad = (vertFovDeg / 2) * (Math.PI / 180);
+
+  // For each destination row (equirectangular latitude)
+  for (let dy = 0; dy < dh; dy++) {
+    // Equirectangular: latitude goes from +π/2 (top, dy=0) to -π/2 (bottom)
+    const lat = Math.PI / 2 - (dy / dh) * Math.PI;  // radians
+
+    // Cylindrical source row for this latitude:
+    // v_cyl = (tan(lat) / tan(halfVertRad) + 1) / 2   (normalised 0–1)
+    const v_cyl = (Math.tan(lat) / Math.tan(halfVertRad) + 1) / 2;
+
+    if (v_cyl < 0 || v_cyl > 1) {
+      // Outside the captured vertical range — leave transparent
+      continue;
+    }
+
+    const sy = v_cyl * sh;  // fractional source row
+
+    // Copy one source row to the destination row via a 1-pixel-tall drawImage
+    dstCtx.drawImage(
+      srcCanvas,
+      0, sy,          // src x, y
+      sw, 1,          // src width, height (1-px strip)
+      0, dy,          // dst x, y
+      dw, 1           // dst width, height
+    );
+  }
+
+  return dstCanvas;
+}
+
+function applyTextureForMode(texture) {
+  if (projectionMode === "cylindrical") {
+    const img = texture.image;
+    const bitmap = img instanceof ImageBitmap ? img
+                 : img instanceof HTMLImageElement ? img
+                 : null;
+    if (!bitmap) { applyEquirectTexture(texture); return; }
+
+    // 90° total vertical FOV (±45°) matches common LiDAR scanner output.
+    // Adjust this constant if your scanner uses a different vertical coverage.
+    const vertFovDeg = 90;
+
+    const remapped = remapCylindricalToEquirect(bitmap, vertFovDeg);
+    createImageBitmap(remapped).then((bmp) => {
+      const t2 = new THREE.Texture(bmp);
+      t2.colorSpace = THREE.SRGBColorSpace;
+      t2.needsUpdate = true;
+      sphere.material = new THREE.MeshBasicMaterial({ map: t2 });
+    });
+  } else {
+    applyEquirectTexture(texture);
+  }
+}
+
 function loadTextureFromURL(url, name) {
+  lastLoadedURL  = url;
+  lastLoadedFile = null;
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   loader.load(
     url,
-    (texture) => { applyEquirectTexture(texture); },
+    (texture) => { applyTextureForMode(texture); },
     undefined,
     () => {
       // Load failed — likely CORS. Show error and go back.
@@ -126,10 +215,12 @@ function loadTextureFromURL(url, name) {
 }
 
 function loadImage(file) {
+  lastLoadedFile = file;
+  lastLoadedURL  = null;
   const url = URL.createObjectURL(file);
   const loader = new THREE.TextureLoader();
   loader.load(url, (texture) => {
-    applyEquirectTexture(texture);
+    applyTextureForMode(texture);
     URL.revokeObjectURL(url);
   });
 }
@@ -203,6 +294,25 @@ function adjustFOV(delta) {
 // ── Zoom buttons ──────────────────────────────────────────────────────────────
 zoomInBtn.addEventListener("click",  () => adjustFOV(-10));
 zoomOutBtn.addEventListener("click", () => adjustFOV(10));
+
+// ── Projection toggle ─────────────────────────────────────────────────────────
+projToggleBtn.addEventListener("click", () => {
+  projectionMode = projectionMode === "equirect" ? "cylindrical" : "equirect";
+  projToggleBtn.textContent = projectionMode === "equirect" ? "EQ" : "CYL";
+  projToggleBtn.title = projectionMode === "equirect"
+    ? "Currently: Equirectangular — click to switch to Cylindrical"
+    : "Currently: Cylindrical — click to switch to Equirectangular";
+  projToggleBtn.classList.toggle("active", projectionMode === "cylindrical");
+
+  // Re-apply current image with new projection
+  if (lastLoadedFile) {
+    loadImage(lastLoadedFile);
+  } else if (lastLoadedURL) {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
+    loader.load(lastLoadedURL, (texture) => { applyTextureForMode(texture); });
+  }
+});
 
 // ── Keyboard controls ─────────────────────────────────────────────────────────
 const KEYS = {};
