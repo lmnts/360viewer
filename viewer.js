@@ -87,13 +87,18 @@ function animate() {
 // ratio, adjust texture repeat/offset so pixels aren't stretched.
 function applyEquirectTexture(texture) {
   texture.colorSpace = THREE.SRGBColorSpace;
-  const r = texture.image.width / texture.image.height;
-  const ideal = 2.0;
-  if (Math.abs(r - ideal) > 0.05) {
-    const scale = r / ideal;
-    texture.repeat.set(1, scale);
-    texture.offset.set(0, -(scale - 1) / 2);
-    texture.wrapT = THREE.ClampToEdgeWrapping;
+  const img = texture.image;
+  const w = img?.naturalWidth || img?.width;
+  const h = img?.naturalHeight || img?.height;
+  if (w && h && isFinite(w / h)) {
+    const r = w / h;
+    const ideal = 2.0;
+    if (Math.abs(r - ideal) > 0.05) {
+      const scale = r / ideal;
+      texture.repeat.set(1, scale);
+      texture.offset.set(0, -(scale - 1) / 2);
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+    }
   }
   sphere.material = new THREE.MeshBasicMaterial({ map: texture });
 }
