@@ -18,9 +18,9 @@ let renderer, scene, camera, sphere;
 // Camera spherical coords (lon/lat in radians)
 let lon = 0;      // horizontal angle (yaw)
 let lat = 0;      // vertical angle (pitch), clamped
-const TARGET_FOV  = { value: 75 };   // degrees
+const TARGET_FOV  = { value: 90 };   // degrees
 const FOV_MIN     = 30;
-const FOV_MAX     = 110;
+const FOV_MAX     = 130;
 const LAT_LIMIT   = Math.PI / 2 - 0.05;
 
 // ── Setup Three.js ────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ let lastX = 0, lastY = 0;
 
 // Speed factor: slower at narrow FOV (zoomed in), faster when wide
 function dragSpeed() {
-  return camera.fov / 400;
+  return camera.fov / 14000;
 }
 
 canvas.addEventListener("pointerdown", (e) => {
@@ -194,8 +194,8 @@ function openImage(file) {
   // Reset view
   lon = 0;
   lat = 0;
-  TARGET_FOV.value = 75;
-  camera.fov = 75;
+  TARGET_FOV.value = 90;
+  camera.fov = 90;
   camera.updateProjectionMatrix();
 }
 
