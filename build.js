@@ -2,7 +2,7 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const VERSION = "v16";
+const VERSION = "v17";
 
 const logoB64 = readFileSync("LMN Logo_White.png").toString("base64");
 const logoSrc = `data:image/png;base64,${logoB64}`;
@@ -62,6 +62,7 @@ const html = `<!DOCTYPE html>
       </button>
       <span id="image-name"></span>
       <div id="controls-hint">Drag to pan &nbsp;·&nbsp; Scroll to zoom</div>
+      <button id="proj-toggle" title="Currently: Equirectangular — click to switch to Cylindrical">EQ</button>
     </div>
 
     <div id="zoom-btns">
