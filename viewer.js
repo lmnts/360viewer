@@ -189,6 +189,7 @@ function openImage(file) {
 
   uploadScreen.classList.add("hidden");
   viewerScreen.classList.remove("hidden");
+  resizeRenderer();  // canvas was 0×0 while hidden — fix now
 
   // Reset view
   lon = 0;
