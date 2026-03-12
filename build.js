@@ -2,7 +2,10 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const VERSION = "v14";
+const VERSION = "v15";
+
+const logoB64 = readFileSync("LMN Logo_White.png").toString("base64");
+const logoSrc = `data:image/png;base64,${logoB64}`;
 
 const result = await build({
   entryPoints: ["viewer.js"],
@@ -60,6 +63,8 @@ const html = `<!DOCTYPE html>
       <button id="zoom-in" title="Zoom in">+</button>
       <button id="zoom-out" title="Zoom out">−</button>
     </div>
+
+    <img id="viewer-logo" src="${logoSrc}" alt="" />
   </div>
 
   <script>${js}</script>

@@ -202,3 +202,15 @@ html, body {
 #zoom-btns button:hover {
   background: rgba(255,255,255,0.22);
 }
+
+/* ── Viewer logo ───────────────────────────────────── */
+
+#viewer-logo {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
+  height: 40px;
+  width: auto;
+  pointer-events: none;
+  opacity: 0.85;
+}
