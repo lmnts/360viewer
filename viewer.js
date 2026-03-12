@@ -82,15 +82,27 @@ function animate() {
 }
 
 // ── Load image into sphere texture ───────────────────────────────────────────
+
+// Equirectangular images should be 2:1. If the image has a different aspect
+// ratio, adjust texture repeat/offset so pixels aren't stretched.
+function applyEquirectTexture(texture) {
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const r = texture.image.width / texture.image.height;
+  const ideal = 2.0;
+  if (Math.abs(r - ideal) > 0.05) {
+    texture.repeat.set(1, ideal / r);
+    texture.offset.set(0, (1 - ideal / r) / 2);
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+  }
+  sphere.material = new THREE.MeshBasicMaterial({ map: texture });
+}
+
 function loadTextureFromURL(url, name) {
   const loader = new THREE.TextureLoader();
   loader.crossOrigin = "anonymous";
   loader.load(
     url,
-    (texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      sphere.material = new THREE.MeshBasicMaterial({ map: texture });
-    },
+    (texture) => { applyEquirectTexture(texture); },
     undefined,
     () => {
       // Load failed — likely CORS. Show error and go back.
@@ -111,8 +123,7 @@ function loadImage(file) {
   const url = URL.createObjectURL(file);
   const loader = new THREE.TextureLoader();
   loader.load(url, (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    sphere.material = new THREE.MeshBasicMaterial({ map: texture });
+    applyEquirectTexture(texture);
     URL.revokeObjectURL(url);
   });
 }
