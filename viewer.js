@@ -114,7 +114,7 @@ canvas.addEventListener("pointermove", (e) => {
   lastY = e.clientY;
 
   lon -= dx * dragSpeed();
-  lat += dy * dragSpeed();
+  lat -= dy * dragSpeed();
   lat = Math.max(-LAT_LIMIT, Math.min(LAT_LIMIT, lat));
 });
 
