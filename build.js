@@ -2,7 +2,7 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const VERSION = "v11";
+const VERSION = "v12";
 
 const result = await build({
   entryPoints: ["viewer.js"],
