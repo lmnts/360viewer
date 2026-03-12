@@ -2,7 +2,7 @@
 import { build } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const VERSION = "v17";
+const VERSION = "v18";
 
 const logoB64 = readFileSync("LMN Logo_White.png").toString("base64");
 const logoSrc = `data:image/png;base64,${logoB64}`;
@@ -68,6 +68,12 @@ const html = `<!DOCTYPE html>
     <div id="zoom-btns">
       <button id="zoom-in" title="Zoom in">+</button>
       <button id="zoom-out" title="Zoom out">−</button>
+    </div>
+
+    <div id="cyl-fov-panel" class="hidden">
+      <label for="cyl-fov-slider">Vert. FOV</label>
+      <input id="cyl-fov-slider" type="range" min="60" max="170" value="120" step="5" />
+      <span id="cyl-fov-label">120°</span>
     </div>
 
     <img id="viewer-logo" src="${logoSrc}" alt="" />

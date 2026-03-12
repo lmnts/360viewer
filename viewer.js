@@ -15,6 +15,8 @@ const urlInput      = document.getElementById("url-input");
 const urlLoadBtn    = document.getElementById("url-load-btn");
 const urlError      = document.getElementById("url-error");
 const projToggleBtn = document.getElementById("proj-toggle");
+const cylFovSlider  = document.getElementById("cyl-fov-slider");
+const cylFovLabel   = document.getElementById("cyl-fov-label");
 
 // ── Three.js state ────────────────────────────────────────────────────────────
 let renderer, scene, camera, sphere;
@@ -112,15 +114,19 @@ function applyEquirectTexture(texture) {
   sphere.material = new THREE.MeshBasicMaterial({ map: texture });
 }
 
+// Vertical FOV used for cylindrical remapping (degrees, total span e.g. 120 = ±60°).
+// Exposed to the UI slider so the user can tune it to match their scanner.
+let cylVertFov = 120;
+
 // Remap a cylindrical-projection image to equirectangular via an offscreen
-// canvas, then apply.  In rectilinear cylindrical projection the image's
-// vertical coordinate is proportional to tan(elevation_angle) rather than to
-// the elevation angle itself.  Mapping such an image straight onto the sphere
-// makes horizontal lines bow into a "frown" shape.  We correct this by
-// resampling each output row from the correct input row.
+// canvas.  In rectilinear cylindrical projection the vertical coordinate is
+// proportional to tan(elevation_angle).  Mapping that straight onto the sphere
+// (which expects linear-in-angle) makes horizontal lines bow into a "frown".
+// We correct this by resampling each output row from the correct source row.
 //
-// vertFovDeg — assumed total vertical field of view of the original capture
-//              (e.g. 90 means ±45°).  180 = full equirectangular (no-op).
+// Out-of-range rows (above/below the captured FOV) are clamped to the nearest
+// image edge rather than left black — this avoids a dark band at the top when
+// the scanner can see near-overhead.
 function remapCylindricalToEquirect(imgBitmap, vertFovDeg) {
   const sw = imgBitmap.width;
   const sh = imgBitmap.height;
@@ -136,30 +142,25 @@ function remapCylindricalToEquirect(imgBitmap, vertFovDeg) {
   const dstCtx = dstCanvas.getContext("2d");
 
   const halfVertRad = (vertFovDeg / 2) * (Math.PI / 180);
+  const tanHalf = Math.tan(halfVertRad);
 
   // For each destination row (equirectangular latitude)
   for (let dy = 0; dy < dh; dy++) {
-    // Equirectangular: latitude goes from +π/2 (top, dy=0) to -π/2 (bottom)
-    const lat = Math.PI / 2 - (dy / dh) * Math.PI;  // radians
+    // Equirectangular: latitude from +π/2 (top, dy=0) to -π/2 (bottom)
+    const lat = Math.PI / 2 - (dy / dh) * Math.PI;
 
-    // Cylindrical source row for this latitude:
-    // v_cyl = (tan(lat) / tan(halfVertRad) + 1) / 2   (normalised 0–1)
-    const v_cyl = (Math.tan(lat) / Math.tan(halfVertRad) + 1) / 2;
+    // Cylindrical source row for this latitude (clamped to image bounds):
+    // v_cyl = (tan(lat) / tanHalf + 1) / 2   (normalised 0–1)
+    // tan(lat) → ±∞ near poles, so clamp the result rather than skip.
+    const tanLat = Math.tan(lat);
+    const v_cyl = Math.max(0, Math.min(1, (tanLat / tanHalf + 1) / 2));
 
-    if (v_cyl < 0 || v_cyl > 1) {
-      // Outside the captured vertical range — leave transparent
-      continue;
-    }
+    const sy = v_cyl * sh;
 
-    const sy = v_cyl * sh;  // fractional source row
-
-    // Copy one source row to the destination row via a 1-pixel-tall drawImage
     dstCtx.drawImage(
       srcCanvas,
-      0, sy,          // src x, y
-      sw, 1,          // src width, height (1-px strip)
-      0, dy,          // dst x, y
-      dw, 1           // dst width, height
+      0, sy,  sw, 1,   // src strip
+      0, dy,  dw, 1    // dst row
     );
   }
 
@@ -174,11 +175,7 @@ function applyTextureForMode(texture) {
                  : null;
     if (!bitmap) { applyEquirectTexture(texture); return; }
 
-    // 90° total vertical FOV (±45°) matches common LiDAR scanner output.
-    // Adjust this constant if your scanner uses a different vertical coverage.
-    const vertFovDeg = 90;
-
-    const remapped = remapCylindricalToEquirect(bitmap, vertFovDeg);
+    const remapped = remapCylindricalToEquirect(bitmap, cylVertFov);
     createImageBitmap(remapped).then((bmp) => {
       const t2 = new THREE.Texture(bmp);
       t2.colorSpace = THREE.SRGBColorSpace;
@@ -295,6 +292,22 @@ function adjustFOV(delta) {
 zoomInBtn.addEventListener("click",  () => adjustFOV(-10));
 zoomOutBtn.addEventListener("click", () => adjustFOV(10));
 
+// ── Cylindrical FOV slider ────────────────────────────────────────────────────
+cylFovSlider.addEventListener("input", () => {
+  cylVertFov = Number(cylFovSlider.value);
+  cylFovLabel.textContent = `${cylVertFov}°`;
+  // Re-apply with new FOV value
+  if (projectionMode === "cylindrical") {
+    if (lastLoadedFile) {
+      loadImage(lastLoadedFile);
+    } else if (lastLoadedURL) {
+      const loader = new THREE.TextureLoader();
+      loader.crossOrigin = "anonymous";
+      loader.load(lastLoadedURL, (texture) => { applyTextureForMode(texture); });
+    }
+  }
+});
+
 // ── Projection toggle ─────────────────────────────────────────────────────────
 projToggleBtn.addEventListener("click", () => {
   projectionMode = projectionMode === "equirect" ? "cylindrical" : "equirect";
@@ -303,6 +316,7 @@ projToggleBtn.addEventListener("click", () => {
     ? "Currently: Equirectangular — click to switch to Cylindrical"
     : "Currently: Cylindrical — click to switch to Equirectangular";
   projToggleBtn.classList.toggle("active", projectionMode === "cylindrical");
+  document.getElementById("cyl-fov-panel").classList.toggle("hidden", projectionMode !== "cylindrical");
 
   // Re-apply current image with new projection
   if (lastLoadedFile) {

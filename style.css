@@ -284,6 +284,47 @@ html, body {
   background: rgba(255,255,255,0.22);
 }
 
+/* ── Cylindrical FOV panel ─────────────────────────── */
+
+#cyl-fov-panel {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px;
+  pointer-events: all;
+}
+
+#cyl-fov-panel.hidden {
+  display: none;
+}
+
+#cyl-fov-panel label {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  white-space: nowrap;
+}
+
+#cyl-fov-slider {
+  width: 120px;
+  accent-color: rgba(120,160,255,0.9);
+  cursor: pointer;
+}
+
+#cyl-fov-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(160,200,255,0.9);
+  min-width: 3ch;
+  text-align: right;
+}
+
 /* ── Viewer logo ───────────────────────────────────── */
 
 #viewer-logo {

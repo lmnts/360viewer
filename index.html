@@ -44,6 +44,13 @@
       <button id="zoom-in" title="Zoom in">+</button>
       <button id="zoom-out" title="Zoom out">−</button>
     </div>
+
+    <!-- Cylindrical FOV tuning panel — only visible in CYL mode -->
+    <div id="cyl-fov-panel" class="hidden">
+      <label for="cyl-fov-slider">Vert. FOV</label>
+      <input id="cyl-fov-slider" type="range" min="60" max="170" value="120" step="5" />
+      <span id="cyl-fov-label">120°</span>
+    </div>
   </div>
 
   <script type="importmap">
